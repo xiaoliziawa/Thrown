@@ -1,5 +1,6 @@
 {
   "key.categories.thrown": "Thrown!",
   "key.placeblock": "Place block mode",
-  "key.throwitem": "Enable/Disable throwing items"
+  "key.throwitem": "Enable/Disable throwing items",
+  "item.thrown.kzzyc": "java.lang.NullPointerException"
 }

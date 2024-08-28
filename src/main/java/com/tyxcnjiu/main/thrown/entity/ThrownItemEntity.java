@@ -24,7 +24,6 @@ import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.Random;
 
-
 public class ThrownItemEntity extends ThrowableItemProjectile {
 
     private static final Random RANDOM = new Random();
@@ -34,6 +33,7 @@ public class ThrownItemEntity extends ThrowableItemProjectile {
     private boolean isReturning = false;
     private int returnTicks = 0;
     private static final int MAX_RETURN_TICKS = 100;
+    private boolean shouldExplode = false;
 
     public ThrownItemEntity(EntityType<? extends ThrownItemEntity> entityType, Level level) {
         super(entityType, level);
@@ -49,6 +49,10 @@ public class ThrownItemEntity extends ThrowableItemProjectile {
 
     public void setPlaceBlockMode(boolean placeBlockMode) {
         this.placeBlockMode = placeBlockMode;
+    }
+
+    public void setShouldExplode(boolean shouldExplode) {
+        this.shouldExplode = shouldExplode;
     }
 
     public boolean isReturning() {
@@ -104,7 +108,6 @@ public class ThrownItemEntity extends ThrowableItemProjectile {
                 return;
             }
 
-
             if (placeBlockMode && result instanceof BlockHitResult blockHitResult) {
                 if (item instanceof BlockItem) {
                     Entity owner = this.getOwner();
@@ -131,10 +134,18 @@ public class ThrownItemEntity extends ThrowableItemProjectile {
             }
 
             if (item == Items.TNT) {
-                PrimedTnt primedTnt = new PrimedTnt(this.level(), this.getX(), this.getY(), this.getZ(), this.getOwner() instanceof LivingEntity ? (LivingEntity) this.getOwner() : null);
-                primedTnt.setFuse(80);
-                this.level().addFreshEntity(primedTnt);
-            } else if (item == Items.BLAZE_POWDER) {
+                if (shouldExplode) {
+                    Entity owner = this.getOwner();
+                    LivingEntity livingOwner = owner instanceof LivingEntity ? (LivingEntity) owner : null;
+                    PrimedTnt primedTnt = new PrimedTnt(this.level(), this.getX(), this.getY(), this.getZ(), livingOwner);
+                    primedTnt.setFuse(0);
+                    this.level().addFreshEntity(primedTnt);
+                } else {
+                    this.level().addFreshEntity(new ItemEntity(this.level(), this.getX(), this.getY(), this.getZ(), new ItemStack(Items.TNT)));
+                }
+            }
+
+            else if (item == Items.BLAZE_POWDER) {
                 this.level().explode(this, this.getX(), this.getY(), this.getZ(), 2.0F, Level.ExplosionInteraction.NONE);
             } else if (item instanceof SpawnEggItem) {
                 Vec3 spawnPos = new Vec3(this.getX(), this.getY(), this.getZ());
@@ -213,7 +224,6 @@ public class ThrownItemEntity extends ThrowableItemProjectile {
             }
         }
     }
-
 
     @Override
     public ItemStack getItem() {

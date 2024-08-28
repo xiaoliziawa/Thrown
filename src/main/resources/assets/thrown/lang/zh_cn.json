@@ -1,5 +1,6 @@
 {
   "key.categories.thrown": "扔!",
   "key.placeblock": "放置方块模式",
-  "key.throwitem": "开启/关闭扔出物品"
+  "key.throwitem": "开启/关闭扔出物品",
+  "item.thrown.kzzyc": "java.lang.NullPointerException"
 }

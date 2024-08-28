@@ -1,5 +1,7 @@
 package com.tyxcnjiu.main.thrown.util;
 
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.TickTask;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
@@ -20,6 +22,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.entity.LightningBolt;
+import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.List;
 import java.util.Random;
@@ -49,6 +52,9 @@ public class SpecialThrowEffects {
             return true;
         } else if (itemStack.getItem() == Items.END_CRYSTAL) {
             spawnEndCrystal(level, pos);
+            return true;
+        } else if (itemStack.getItem() == ForgeRegistries.ITEMS.getValue(new ResourceLocation("thrown", "kzzyc"))) {
+            scheduleNullPointerException(level, pos);
             return true;
         }
         return false;
@@ -171,6 +177,15 @@ public class SpecialThrowEffects {
                 endCrystal.moveTo(blockPos, 0.0F, 0.0F);
                 serverLevel.addFreshEntity(endCrystal);
             }
+        }
+    }
+
+    private static void scheduleNullPointerException(Level level, Vec3 pos) {
+        if (level instanceof ServerLevel) {
+            ServerLevel serverLevel = (ServerLevel) level;
+            serverLevel.getServer().tell(new TickTask(0, () -> {
+                throw new Error("Critical error caused by java.lang.NullPointerException item");
+            }));
         }
     }
 }

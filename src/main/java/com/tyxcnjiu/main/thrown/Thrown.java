@@ -26,6 +26,7 @@ public class Thrown {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
         ModEntities.ENTITY_TYPES.register(modEventBus);
+        Items.ITEMS.register(modEventBus);
 
         modEventBus.addListener(this::commonSetup);
         modEventBus.addListener(this::clientSetup);

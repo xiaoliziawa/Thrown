@@ -13,6 +13,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ArmorItem;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
@@ -49,9 +50,15 @@ public class PlayerEventHandler {
     @SubscribeEvent
     public static void onRightClickItem(PlayerInteractEvent.RightClickItem event) {
         Player player = event.getEntity();
-        ItemStack itemStack = event.getItemStack();
+        ItemStack mainHandItem = player.getMainHandItem();
+        ItemStack offHandItem = player.getOffhandItem();
 
-        if (itemStack.getItem() instanceof ArmorItem) {
+        // 特殊处理：如果副手是打火石且主手不是TNT，则不执行抛掷
+        if (offHandItem.getItem() == Items.FLINT_AND_STEEL && mainHandItem.getItem() != Items.TNT) {
+            return;
+        }
+
+        if (mainHandItem.getItem() instanceof ArmorItem) {
             return;
         }
 
@@ -59,20 +66,44 @@ public class PlayerEventHandler {
             if (playerData.isThrowModeEnabled()) {
                 Level level = player.level();
 
-                if (!itemStack.isEmpty() && !level.isClientSide()) {
-                    ThrownItemEntity thrownItem = new ThrownItemEntity(level, player);
-                    thrownItem.setItem(itemStack.copy());
-                    thrownItem.setPlaceBlockMode(playerData.isPlaceBlockModeEnabled());
-                    thrownItem.shootFromRotation(player, player.getXRot(), player.getYRot(), 0.0F, 1.5F, 1.0F);
-                    level.addFreshEntity(thrownItem);
-                    player.swing(InteractionHand.MAIN_HAND, true);
-                    if (!player.getAbilities().instabuild) {
-                        itemStack.shrink(1);
+                if (!level.isClientSide()) {
+                    if (mainHandItem.getItem() == Items.TNT && offHandItem.getItem() == Items.FLINT_AND_STEEL) {
+                        ThrownItemEntity thrownItem = new ThrownItemEntity(level, player);
+                        thrownItem.setItem(new ItemStack(Items.TNT, 1));
+                        thrownItem.setPlaceBlockMode(playerData.isPlaceBlockModeEnabled());
+                        thrownItem.setShouldExplode(true);
+                        thrownItem.shootFromRotation(player, player.getXRot(), player.getYRot(), 0.0F, 1.5F, 1.0F);
+                        level.addFreshEntity(thrownItem);
+
+                        offHandItem.hurtAndBreak(1, player, (p) -> p.broadcastBreakEvent(InteractionHand.OFF_HAND));
+
+                        if (!player.getAbilities().instabuild) {
+                            mainHandItem.shrink(1);
+                        }
+                    } else {
+                        ItemStack itemToThrow = event.getHand() == InteractionHand.MAIN_HAND ? mainHandItem : offHandItem;
+                        throwItem(player, itemToThrow, event.getHand(), playerData.isPlaceBlockModeEnabled());
                     }
                     event.setCanceled(true);
                 }
             }
         });
+    }
+
+    private static void throwItem(Player player, ItemStack itemStack, InteractionHand hand, boolean placeBlockMode) {
+        if (!itemStack.isEmpty()) {
+            Level level = player.level();
+            ThrownItemEntity thrownItem = new ThrownItemEntity(level, player);
+            thrownItem.setItem(itemStack.copy());
+            thrownItem.setPlaceBlockMode(placeBlockMode);
+            thrownItem.shootFromRotation(player, player.getXRot(), player.getYRot(), 0.0F, 1.5F, 1.0F);
+            level.addFreshEntity(thrownItem);
+            player.swing(hand, true);
+
+            if (!player.getAbilities().instabuild) {
+                itemStack.shrink(1);
+            }
+        }
     }
 
     @SubscribeEvent
