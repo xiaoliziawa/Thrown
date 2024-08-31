@@ -1,6 +1,7 @@
 package com.tyxcnjiu.main.thrown.init;
 
 import com.tyxcnjiu.main.thrown.Thrown;
+import com.tyxcnjiu.main.thrown.entity.ThrownBucketEntity;
 import com.tyxcnjiu.main.thrown.entity.ThrownItemEntity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
@@ -18,6 +19,14 @@ public class ModEntities {
                     .clientTrackingRange(4)
                     .updateInterval(10)
                     .build("thrown_item"));
+
+    public static final RegistryObject<EntityType<ThrownBucketEntity>> THROWN_BUCKET = ENTITY_TYPES.register("thrown_bucket",
+            () -> EntityType.Builder.<ThrownBucketEntity>of(ThrownBucketEntity::new, MobCategory.MISC)
+                    .sized(0.25F, 0.25F)
+                    .clientTrackingRange(4)
+                    .updateInterval(10)
+                    .build("thrown_bucket"));
+
 
     public static void register(IEventBus eventBus) {
         ENTITY_TYPES.register(eventBus);

@@ -53,7 +53,6 @@ public class PlayerEventHandler {
         ItemStack mainHandItem = player.getMainHandItem();
         ItemStack offHandItem = player.getOffhandItem();
 
-        // 特殊处理：如果副手是打火石且主手不是TNT，则不执行抛掷
         if (offHandItem.getItem() == Items.FLINT_AND_STEEL && mainHandItem.getItem() != Items.TNT) {
             return;
         }
